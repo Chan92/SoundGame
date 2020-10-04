@@ -3,13 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+//in progress
 public class Manager : MonoBehaviour {
-	[SerializeField]
-	private Enemy enemy;
+	#region Variables
+	[Header("---Free for Editing---")]
 	[SerializeField]
 	private float minSpawnDistance = 5f, maxSpawnDistance = 15f;
 
+	private Enemy enemy;
+	private Player player;
+	#endregion
+
 	private void Start() {
+		enemy = Transform.FindObjectOfType<Enemy>();
+		player = Transform.FindObjectOfType<Player>();
 		enemy.gameObject.SetActive(false);
 	}
 
@@ -22,6 +29,7 @@ public class Manager : MonoBehaviour {
 	public void RandomRoll() {
 		enemy.SetStrength();
 		enemy.transform.position = RandomPosition();
+		enemy.transform.LookAt(player.transform);
 		enemy.gameObject.SetActive(true);
 	}
 
@@ -30,6 +38,14 @@ public class Manager : MonoBehaviour {
 		pos.x = Random.Range(minSpawnDistance, maxSpawnDistance);
 		pos.z = Random.Range(minSpawnDistance, maxSpawnDistance);
 
+		//randomly change value between positive and negative
+		pos.x *= RandomSign();
+		pos.y *= RandomSign();
+
 		return pos;
+	}
+
+	private float RandomSign() {
+		return Random.value < 0.5f ? 1 : -1;
 	}
 }

@@ -1559,7 +1559,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 190e05bc05fca544fb2ce380d84b0924, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  useBlackScreen: 0
+  useBlackScreen: 1
   blackScreen: {fileID: 1940946641}
   minSpawnDistance: 5
   maxSpawnDistance: 15

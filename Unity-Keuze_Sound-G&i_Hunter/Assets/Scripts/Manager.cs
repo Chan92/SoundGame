@@ -6,9 +6,17 @@ using UnityEngine;
 //in progress
 public class Manager : MonoBehaviour {
 	#region Variables
+	[Header("---<Debugging tools>---")]
+	[SerializeField]
+	private bool useBlackScreen;
+	[SerializeField]
+	private GameObject blackScreen;
+
 	[Header("---Free for Editing---")]
 	[SerializeField]
-	private float minSpawnDistance = 5f, maxSpawnDistance = 15f;
+	private float minSpawnDistance = 5f;
+	[SerializeField]
+	private float maxSpawnDistance = 15f;
 
 	private Enemy enemy;
 	private Player player;
@@ -18,6 +26,8 @@ public class Manager : MonoBehaviour {
 		enemy = Transform.FindObjectOfType<Enemy>();
 		player = Transform.FindObjectOfType<Player>();
 		enemy.gameObject.SetActive(false);
+
+		blackScreen.SetActive(useBlackScreen);
 	}
 
 	private void Update() {

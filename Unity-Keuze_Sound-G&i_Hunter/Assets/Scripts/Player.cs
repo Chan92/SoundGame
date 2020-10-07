@@ -37,17 +37,22 @@ public class Player:MonoBehaviour {
 	[Space(10)]
 	[Tooltip("The eating sound the player makes when attacking.")]
 	[SerializeField]
-	private AudioSource attackSound;
+	private AudioClip attackSound;
 	[Tooltip("The sound to give the player the illusion of moving forwards.")]
 	[SerializeField]
-	private AudioSource movementSound;
+	private AudioClip movementSound;
 	[Tooltip("The sound reveal growth status.")]
 	[SerializeField]
-	private AudioSource callSound;
+	private AudioClip callSound;
 	[SerializeField]
-	private AudioSource gameOverSound;
+	private AudioClip gameOverSound;
+
+	private AudioSource audioSource;
 	#endregion
 
+	private void Awake() {
+		audioSource = transform.GetComponent<AudioSource>();
+	}
 
 	private void Update() {
 		Attack();
@@ -60,7 +65,8 @@ public class Player:MonoBehaviour {
 
 			if(Vector3.Distance(transform.position, enemy.transform.position) < attackDistance) {
 				int enemyLevel = enemy.EnemyLevel;
-			
+				PlayClip(attackSound);
+				
 				if(enemyLevel > playerLevel) {
 					Attacked();
 				//} else if(enemyLevel == playerLevel) {			
@@ -83,6 +89,7 @@ public class Player:MonoBehaviour {
 
 	private void Call() {
 		if(Input.GetKeyDown(callKey)) {
+			PlayClip(callSound);
 			//growth status
 			//lives status?
 		}
@@ -92,13 +99,18 @@ public class Player:MonoBehaviour {
 		playerLevel += amount;
 	}
 	
-	private void Attacked() {
+	public void Attacked() {
 		PlayerLives -= 1;
 
 		if(PlayerLives <= 0) {
-			//gameover
+			PlayClip(gameOverSound);
 		}
 
 		Manager.instance.RandomRoll();
+	}
+
+	private void PlayClip(AudioClip audioClip) {
+		if(audioSource && audioClip)
+			audioSource.PlayOneShot(audioClip);
 	}
 }

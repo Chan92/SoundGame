@@ -12,11 +12,11 @@ public class EnemySetup {
 [System.Serializable]
 public class EnemyNoices {
 	[Tooltip("Will choose random sound from this list when the enemy is the weakest level.")]
-	public AudioSource[] Lv1_SoundTracks;
+	public AudioClip[] Lv1_SoundTracks;
 	[Tooltip("Will choose random sound from this list when the enemy is the middle level.")]
-	public AudioSource[] Lv2_SoundTracks;
+	public AudioClip[] Lv2_SoundTracks;
 	[Tooltip("Will choose random sound from this list when the enemy is the strongest level.")]
-	public AudioSource[] Lv3_SoundTracks;
+	public AudioClip[] Lv3_SoundTracks;
 }
 
 
@@ -25,7 +25,7 @@ public class Enemy:MonoBehaviour {
 	[Header("---Generated<Dont Touch>---")]
 	[Tooltip("The current noice the enemy makes, after randomly being selected from the <Enemy Noices> list.")]
 	[SerializeField]
-	private AudioSource enemySound;
+	private AudioClip enemySound;
 
 	//The strength of the enemy, where 1 is weakest.
 	public int EnemyLevel {
@@ -43,10 +43,11 @@ public class Enemy:MonoBehaviour {
 	[Space(10)]
 	[Tooltip("The eating sound the enemy makes when the player is weaker and didnt hide.")]
 	[SerializeField]
-	private AudioSource enemyAttackSound;
+	private AudioClip enemyAttackSound;
 	[Tooltip("Sound the enemy makes where the player has to determine wheter to attack or hide.")]
 	[SerializeField]
 	private EnemyNoices enemyNoices;
+	private AudioSource audioSource;
 
 
 	[Header("---Enemy Visuals---")]
@@ -57,6 +58,7 @@ public class Enemy:MonoBehaviour {
 	#endregion
 
 	private void Awake() {
+		audioSource = transform.GetComponent<AudioSource>();
 		material = transform.GetComponent<Renderer>().material;
 	}
 
@@ -71,9 +73,13 @@ public class Enemy:MonoBehaviour {
 
 	//call this if the player didnt hide when the enemy is stronger
 	public void Attack() {
-		if(!Manager.instance.player.Hidden) {
-			//attacks the player
-			//attack noice
+		//if enemy is close && stronger
+
+		Player player = Manager.instance.player;
+
+		if(!player.Hidden) {
+			player.Attacked();
+			PlayClip(enemyAttackSound);
 		}
 	}
 
@@ -118,5 +124,10 @@ public class Enemy:MonoBehaviour {
 		}
 
 		return null;
+	}
+
+	private void PlayClip(AudioClip audioClip) {
+		if(audioSource && audioClip)
+			audioSource.PlayOneShot(audioClip);
 	}
 }

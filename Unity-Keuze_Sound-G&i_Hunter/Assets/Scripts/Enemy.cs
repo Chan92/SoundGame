@@ -23,19 +23,22 @@ public class EnemyNoices {
 public class Enemy:MonoBehaviour {
 	#region Variables
 	[Header("---Generated<Dont Touch>---")]
-	[Tooltip("The strength of the enemy, where 1 is weakest.")]
-	[SerializeField]
-	private int enemyLevel = 1;
 	[Tooltip("The current noice the enemy makes, after randomly being selected from the <Enemy Noices> list.")]
 	[SerializeField]
 	private AudioSource enemySound;
+
+	//The strength of the enemy, where 1 is weakest.
+	public int EnemyLevel {
+		get; private set;
+	}
+	
 
 	[Header("---Free for Editing---")]
 	[Min(1)]
 	[SerializeField]
 	private int enemyMaxLevel = 3;
 	[SerializeField]
-	private float moveSpeed = 10f;
+	private float moveSpeed = 5f;
 
 	[Space(10)]
 	[Tooltip("The eating sound the enemy makes when the player is weaker and didnt hide.")]
@@ -45,16 +48,15 @@ public class Enemy:MonoBehaviour {
 	[SerializeField]
 	private EnemyNoices enemyNoices;
 
+
 	[Header("---Enemy Visuals---")]
 	[SerializeField]
 	private EnemySetup enemySetup;
 
-	private Player player;
 	private Material material;
 	#endregion
 
 	private void Awake() {
-		player = Transform.FindObjectOfType<Player>();
 		material = transform.GetComponent<Renderer>().material;
 	}
 
@@ -69,17 +71,19 @@ public class Enemy:MonoBehaviour {
 
 	//call this if the player didnt hide when the enemy is stronger
 	public void Attack() {
-		//attacks the player
-		//attack noice
+		if(!Manager.instance.player.Hidden) {
+			//attacks the player
+			//attack noice
+		}
 	}
 
 	//call this on re-rolling a new enemy
 	public void SetStrength() {
-		enemyLevel = Random.Range(1, enemyMaxLevel +1);
+		EnemyLevel = Random.Range(1, enemyMaxLevel +1);
 
-		if(player.playerLevel > enemyLevel) {
+		if(Manager.instance.player.playerLevel > EnemyLevel) {
 			material.color = enemySetup.weakEnemyColor;
-		} else if(player.playerLevel < enemyLevel) {
+		} else if(Manager.instance.player.playerLevel < EnemyLevel) {
 			material.color = enemySetup.strongEnemyColor;
 		} else {
 			material.color = enemySetup.sameEnemyColor;
@@ -90,7 +94,7 @@ public class Enemy:MonoBehaviour {
 
 	//get noise based on strength
 	private void GetRandomNoice() {
-		switch(enemyLevel) {
+		switch(EnemyLevel) {
 			case 1:
 				enemySound = RandomNoiceTrack(enemyNoices.Lv1_SoundTracks);
 				break;

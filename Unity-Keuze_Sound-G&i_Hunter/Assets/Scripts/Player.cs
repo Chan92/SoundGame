@@ -2,20 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//in progress
+[System.Serializable]
+public class ExpToLevelUp {
+	[Min(1)]
+	public int toLevel2;
+	[Min(1)]
+	public int toLevel3;
+	[Min(1)]
+	public int toWinGame;
+}
+
 public class Player:MonoBehaviour {
 	#region Variables
-	//[Header("---Generated<Dont Touch>---")]
-	public GameObject hideDebugText;
+	public GameObject hideDebugText, attackDebugText;
 
 	[Header("---<Touch for debugging only>---")]
 	public int playerLevel = 1;
+	private int playerExp;
 
 	public int PlayerLives {
 		get; private set;
 	}
 
 	public bool Hidden {
+		get; private set;
+	}
+
+	public bool Attacking {
 		get; private set;
 	}
 
@@ -27,19 +40,22 @@ public class Player:MonoBehaviour {
 	[SerializeField]
 	private KeyCode callKey = KeyCode.Mouse1;
 
+	[Space(10)]
 	[Min(1)]
 	[Tooltip("1 live means dying on first hit.")]
 	[SerializeField]	
 	private int playerMaxLives = 1;
 	[SerializeField]
 	private float attackDistance = 3f;
+	[SerializeField]
+	private ExpToLevelUp expToLevelUp;
 
 	[Space(10)]
 	[Tooltip("The eating sound the player makes when attacking.")]
 	[SerializeField]
 	private AudioClip attackSound;
 	[Tooltip("The sound to give the player the illusion of moving forwards.")]
-	[SerializeField]
+	//[SerializeField]
 	private AudioClip movementSound;
 	[Tooltip("The sound reveal growth status.")]
 	[SerializeField]
@@ -60,57 +76,91 @@ public class Player:MonoBehaviour {
 	}
 
 	private void Attack() {
-		if(Input.GetKeyDown(attackKey)) {
+		Attacking = Input.GetKey(attackKey);
+
+		if(Attacking) {			
 			Enemy enemy = Manager.instance.enemy;
 
 			if(Vector3.Distance(transform.position, enemy.transform.position) < attackDistance) {
+				attackDebugText.SetActive(Attacking);
 				int enemyLevel = enemy.EnemyLevel;
-				PlayClip(attackSound);
-				
+				Manager.instance.PlayClip(audioSource, attackSound);
+
 				if(enemyLevel > playerLevel) {
 					Attacked();
+				//same lvl is removed for now
 				//} else if(enemyLevel == playerLevel) {			
 					//same level, ???
 				} else {
-					UpdateLevel(1);
-					Manager.instance.RandomRoll();
+					UpdateLevel(enemy.EnemyExpReward);
+					Manager.instance.enemy.GetAttacked();
 				}
 			}
+		} else if(Input.GetKeyUp(attackKey)) {
+			attackDebugText.SetActive(Attacking);
 		}
 	}
 
+	//TODO: hide sound?
 	private void Hide() {
 		Hidden = Input.GetKey(hideKey);
-		hideDebugText.SetActive(Hidden);
 
-		//...
-		//Manager.instance.RandomRoll();
+		if(Hidden) {
+			Enemy enemy = Manager.instance.enemy;
+
+			if(Vector3.Distance(transform.position, enemy.transform.position) < attackDistance) {
+				hideDebugText.SetActive(Hidden);
+				Manager.instance.enemy.MoveAway();
+			}
+		} else if(Input.GetKeyUp(hideKey)) {
+			hideDebugText.SetActive(Hidden);
+		}
 	}
 
+	//TODO: create/finish call function
 	private void Call() {
 		if(Input.GetKeyDown(callKey)) {
-			PlayClip(callSound);
+			Manager.instance.PlayClip(audioSource, callSound);
 			//growth status
 			//lives status?
 		}
 	}
 
+	//TODO: finish win game
 	private void UpdateLevel(int amount) {
-		playerLevel += amount;
+		playerExp += amount;
+
+		switch(playerLevel) {
+			case 1:
+				if(playerExp >= expToLevelUp.toLevel2) {
+					playerLevel++;
+					playerExp = 0;
+				}
+				break;
+			case 2:
+				if(playerExp >= expToLevelUp.toLevel3) {
+					playerLevel++;
+					playerExp = 0;
+				}
+				break;
+			case 3:
+				if(playerExp >= expToLevelUp.toWinGame) {
+					playerLevel++;
+					playerExp = 0;
+					//win game
+				}
+				break;
+		}
 	}
 	
+	//TODO: finish gameover
 	public void Attacked() {
 		PlayerLives -= 1;
 
 		if(PlayerLives <= 0) {
-			PlayClip(gameOverSound);
+			Manager.instance.PlayClip(audioSource, gameOverSound);
 		}
 
 		Manager.instance.RandomRoll();
-	}
-
-	private void PlayClip(AudioClip audioClip) {
-		if(audioSource && audioClip)
-			audioSource.PlayOneShot(audioClip);
 	}
 }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-//in progress
 public class Manager : MonoBehaviour {
 	#region Variables
 	public static Manager instance;
+	[HideInInspector]
+	public bool playerStronger;
 
 	[Header("---<Debugging tools>---")]
 	[SerializeField]
@@ -17,15 +17,19 @@ public class Manager : MonoBehaviour {
 	[SerializeField]
 	private Text playerLevelTxt, playerLivesTxt, enemyLevelTxt;
 	
-
-	[Header("---Free for Editing---")]
+	
+	[Header("---Free for Editing---")]	
 	[SerializeField]
 	private float minSpawnDistance = 5f;
 	[SerializeField]
 	private float maxSpawnDistance = 15f;
+	[SerializeField]
+	private KeyCode startGameKey, randomRollKey, blackScreenKey;
 
 	public Enemy enemy;
 	public Player player;
+
+	private bool gameStarted = false;
 	#endregion
 
 	private void Awake() {
@@ -38,22 +42,28 @@ public class Manager : MonoBehaviour {
 		enemy.gameObject.SetActive(false);
 
 		blackScreen.SetActive(useBlackScreen);
-		RandomRoll();
 	}
 
 	private void Update() {
-		//debugging
-		if(Input.GetKeyDown(KeyCode.N))
+		if(Input.GetKeyDown(startGameKey) && !gameStarted) {
+			gameStarted = true;
 			RandomRoll();
+		}
+		
+		//debugging
+		if(Input.GetKeyDown(randomRollKey) && gameStarted) {
+			RandomRoll();
+		}
+
+		if(Input.GetKeyDown(blackScreenKey)) {
+			useBlackScreen = !useBlackScreen;
+			blackScreen.SetActive(useBlackScreen);
+		}
 	}
 
 	public void RandomRoll() {
-		enemy.SetStrength();
-		enemy.transform.position = RandomPosition();
-		enemy.transform.LookAt(player.transform);
-		enemy.gameObject.SetActive(true);
-
-		if(!useBlackScreen) UpdateUi();
+		enemy.RandomEnemy(RandomPosition(), player.transform);
+		UpdateUi();
 	}
 
 	private Vector3 RandomPosition() {
@@ -76,5 +86,22 @@ public class Manager : MonoBehaviour {
 		playerLevelTxt.text = "Player Level: " + player.playerLevel;
 		playerLivesTxt.text = "Player Lives: " + player.PlayerLives;
 		enemyLevelTxt.text = enemy.EnemyLevel + " :Enemy Level";
+	}
+
+	public void PlayClip(AudioSource audioSource, AudioClip audioClip) {
+		if(audioSource && audioClip) {
+			audioSource.Stop();
+			audioSource.loop = false;
+			audioSource.PlayOneShot(audioClip);
+		}
+	}
+
+	public void PlayRepeatedClip(AudioSource audioSource, AudioClip audioClip) {
+		if(audioSource && audioClip) {
+			audioSource.Stop();
+			audioSource.loop = true;
+			audioSource.clip = audioClip;
+			audioSource.Play();
+		}
 	}
 }

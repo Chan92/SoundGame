@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Manager : MonoBehaviour {
@@ -11,14 +12,19 @@ public class Manager : MonoBehaviour {
 
 	[Header("---<Debugging tools>---")]
 	[SerializeField]
+	private GameObject startGameDebugText;
+	[SerializeField]
 	private bool useBlackScreen;
 	[SerializeField]
 	private GameObject blackScreen;
 	[SerializeField]
 	private Text playerLevelTxt, playerLivesTxt, enemyLevelTxt;
-	
-	
-	[Header("---Free for Editing---")]	
+	public bool gameWin;
+
+
+	[Header("---Free for Editing---")]
+	[SerializeField]
+	private float respawnDelay = 1.5f;
 	[SerializeField]
 	private float minSpawnDistance = 5f;
 	[SerializeField]
@@ -37,6 +43,8 @@ public class Manager : MonoBehaviour {
 	}
 
 	private void Start() {
+		gameWin = false;
+		startGameDebugText.SetActive(true);
 		enemy = Transform.FindObjectOfType<Enemy>();
 		player = Transform.FindObjectOfType<Player>();
 		enemy.gameObject.SetActive(false);
@@ -46,6 +54,7 @@ public class Manager : MonoBehaviour {
 
 	private void Update() {
 		if(Input.GetKeyDown(startGameKey) && !gameStarted) {
+			startGameDebugText.SetActive(false);
 			gameStarted = true;
 			RandomRoll();
 		}
@@ -103,5 +112,17 @@ public class Manager : MonoBehaviour {
 			audioSource.clip = audioClip;
 			audioSource.Play();
 		}
+	}
+
+	public void ReloadLevel() {
+		StartCoroutine(Reload());
+	}
+
+	private IEnumerator Reload() {
+		yield return new WaitForSeconds(respawnDelay);
+
+		SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+		Resources.UnloadUnusedAssets();
+		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
 	}
 }

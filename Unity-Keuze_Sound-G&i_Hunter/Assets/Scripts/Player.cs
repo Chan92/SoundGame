@@ -9,6 +9,10 @@ public class ExpToLevelUp {
 	[Min(1)]
 	public int toLevel3;
 	[Min(1)]
+	public int toLevel4;
+	[Min(1)]
+	public int toLevel5;
+	[Min(1)]
 	public int toWinGame;
 }
 
@@ -53,80 +57,54 @@ public class Player:MonoBehaviour {
 	[Space(10)]
 	[Tooltip("The eating sound the player makes when attacking.")]
 	[SerializeField]
-	private AudioClip attackSound;
+	private AudioClip[] attackSound = new AudioClip[5];
 	[Tooltip("The sound to give the player the illusion of moving forwards.")]
-	//[SerializeField]
-	private AudioClip movementSound;
+	[SerializeField]
+	private AudioClip[] movementSound = new AudioClip[5];
+	[SerializeField]
+	private AudioSource movementSource;
 	[Tooltip("The sound reveal growth status.")]
 	[SerializeField]
-	private AudioClip callSound;
+	private AudioClip hideSound;
 	[SerializeField]
-	private AudioClip gameOverSound;
+	private AudioClip[] callSound = new AudioClip[5];
+	[SerializeField]
+	private AudioClip gameOverSound, winSound;
 
 	private AudioSource audioSource;
 	#endregion
 
 	private void Awake() {
 		audioSource = transform.GetComponent<AudioSource>();
+		hideDebugText.SetActive(false);
+		attackDebugText.SetActive(false);
 	}
 
 	private void Update() {
 		Attack();
 		Hide();
+		Call();
 	}
 
 	private void Attack() {
-		Attacking = Input.GetKey(attackKey);
-
-		if(Attacking) {			
-			Enemy enemy = Manager.instance.enemy;
-
-			if(Vector3.Distance(transform.position, enemy.transform.position) < attackDistance) {
-				attackDebugText.SetActive(Attacking);
-				int enemyLevel = enemy.EnemyLevel;
-				Manager.instance.PlayClip(audioSource, attackSound);
-
-				if(enemyLevel > playerLevel) {
-					Attacked();
-				//same lvl is removed for now
-				//} else if(enemyLevel == playerLevel) {			
-					//same level, ???
-				} else {
-					UpdateLevel(enemy.EnemyExpReward);
-					Manager.instance.enemy.GetAttacked();
-				}
-			}
-		} else if(Input.GetKeyUp(attackKey)) {
-			attackDebugText.SetActive(Attacking);
+		if(Input.GetKeyDown(attackKey)) {
+			StartCoroutine(AttackEnemy());
 		}
 	}
 
-	//TODO: hide sound?
 	private void Hide() {
-		Hidden = Input.GetKey(hideKey);
-
-		if(Hidden) {
-			Enemy enemy = Manager.instance.enemy;
-
-			if(Vector3.Distance(transform.position, enemy.transform.position) < attackDistance) {
-				hideDebugText.SetActive(Hidden);
-				Manager.instance.enemy.MoveAway();
-			}
-		} else if(Input.GetKeyUp(hideKey)) {
-			hideDebugText.SetActive(Hidden);
+		if(Input.GetKeyDown(hideKey)) {
+			StartCoroutine(Hidding());		
 		}
 	}
 
-	//TODO: create/finish call function
 	private void Call() {
 		if(Input.GetKeyDown(callKey)) {
-			Manager.instance.PlayClip(audioSource, callSound);
-			//growth status
-			//lives status?
+			Manager.instance.PlayClip(audioSource, callSound[playerLevel - 1]);
 		}
 	}
 
-	//TODO: finish win game
+	//TODO: win game sound
 	private void UpdateLevel(int amount) {
 		playerExp += amount;
 
@@ -144,23 +122,85 @@ public class Player:MonoBehaviour {
 				}
 				break;
 			case 3:
-				if(playerExp >= expToLevelUp.toWinGame) {
+				if(playerExp >= expToLevelUp.toLevel4) {
 					playerLevel++;
 					playerExp = 0;
-					//win game
+				}
+				break;
+			case 4:
+				if(playerExp >= expToLevelUp.toLevel5) {
+					playerLevel++;
+					playerExp = 0;
+				}
+				break;
+			case 5:
+				if(playerExp >= expToLevelUp.toWinGame) {
+					Manager.instance.gameWin = true;
+					playerLevel++;
+					playerExp = 0;
+					Manager.instance.PlayClip(audioSource, winSound);
+					Manager.instance.ReloadLevel();
 				}
 				break;
 		}
 	}
 	
-	//TODO: finish gameover
 	public void Attacked() {
 		PlayerLives -= 1;
 
 		if(PlayerLives <= 0) {
 			Manager.instance.PlayClip(audioSource, gameOverSound);
+			Manager.instance.ReloadLevel();
+		} else {
+			Manager.instance.RandomRoll();
+		}
+	}
+
+	public void FootStepsSound() {
+		if(playerLevel <= movementSound.Length) {
+			Manager.instance.PlayRepeatedClip(movementSource, movementSound[playerLevel-1]);
+		}
+	}
+
+	IEnumerator Hidding() {
+		Hidden = true;
+		Enemy enemy = Manager.instance.enemy;
+
+		while (Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
+			yield return new WaitForSeconds(0);
 		}
 
-		Manager.instance.RandomRoll();
+		movementSource.Stop();
+		hideDebugText.SetActive(Hidden);
+		Manager.instance.PlayClip(audioSource, hideSound);
+		Manager.instance.enemy.LostTarget();
+
+		yield return new WaitForSeconds(1.5f);
+		Hidden = false;
+		hideDebugText.SetActive(Hidden);
+	}
+
+	IEnumerator AttackEnemy() {
+		Attacking = true;
+		Enemy enemy = Manager.instance.enemy;
+
+		while(Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
+			yield return new WaitForSeconds(0);
+		}
+
+		attackDebugText.SetActive(Attacking);
+		int enemyLevel = enemy.EnemyLevel;
+		Manager.instance.PlayClip(audioSource, attackSound[playerLevel - 1]);
+
+		if(enemyLevel > playerLevel) {
+			Attacked();
+		} else {
+			UpdateLevel(enemy.EnemyExpReward);
+			Manager.instance.enemy.GetAttacked();
+		}
+
+		yield return new WaitForSeconds(1.5f);
+		Attacking = false;
+		attackDebugText.SetActive(Attacking);
 	}
 }

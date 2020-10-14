@@ -17,8 +17,12 @@ public class EnemyNoices {
 	public AudioClip[] Lv1_SoundTracks;
 	[Tooltip("Will choose random sound from this list when the enemy is the middle level.")]
 	public AudioClip[] Lv2_SoundTracks;
-	[Tooltip("Will choose random sound from this list when the enemy is the strongest level.")]
+	[Tooltip("Will choose random sound from this list when the enemy is the middle strong level.")]
 	public AudioClip[] Lv3_SoundTracks;
+	[Tooltip("Will choose random sound from this list when the enemy is the stronger level.")]
+	public AudioClip[] Lv4_SoundTracks;
+	[Tooltip("Will choose random sound from this list when the enemy is the strongest level.")]
+	public AudioClip[] Lv5_SoundTracks;
 }
 
 [System.Serializable]
@@ -31,6 +35,10 @@ public class EnemyExpRewardList {
 	public int lvl2_ExpReward;
 	[Min(1)]
 	public int lvl3_ExpReward;
+	[Min(1)]
+	public int lvl4_ExpReward;
+	[Min(1)]
+	public int lvl5_ExpReward;
 }
 
 public class Enemy:MonoBehaviour {
@@ -95,12 +103,12 @@ public class Enemy:MonoBehaviour {
 		if(moveToPlayer) {
 			Movement();
 
-			if(Vector3.Distance(Manager.instance.player.transform.position, transform.position) <= 0.5f) {
+			if(Vector3.Distance(Manager.instance.player.transform.position, transform.position) <= 0.25f) {
 				moveToPlayer = false;
 
 				if(Manager.instance.playerStronger) {
 					moveFromPlayer = true;
-				} else {
+				} else if(!Manager.instance.player.Hidden) {
 					Attack();
 				}
 			}
@@ -133,9 +141,14 @@ public class Enemy:MonoBehaviour {
 
 	public void GetAttacked() {
 		moveToPlayer = false;
-		//player gains exp
+		if(!Manager.instance.gameWin) {
+			Manager.instance.RandomRoll();
+		}
+	}
 
-		Manager.instance.RandomRoll();
+	public void LostTarget() {
+		moveToPlayer = false;
+		moveFromPlayer = true;
 	}
 
 	public void RandomEnemy(Vector3 pos, Transform player) {
@@ -145,6 +158,7 @@ public class Enemy:MonoBehaviour {
 		gameObject.SetActive(true);
 		moveToPlayer = true;
 
+		Manager.instance.player.FootStepsSound();
 		Manager.instance.PlayRepeatedClip(audioSource, enemySound);
 	}
 
@@ -171,7 +185,13 @@ public class Enemy:MonoBehaviour {
 		int str;
 
 		do {
-			str = Random.Range(0, enemyMaxLevel + 1);
+
+			if(Manager.instance.player.playerLevel <= 3) {
+				str = Random.Range(0, Manager.instance.player.playerLevel+2);
+			} else {
+				str = Random.Range(2, enemyMaxLevel + 1);
+			}
+
 		} while(str == Manager.instance.player.playerLevel);
 
 		return str;
@@ -192,8 +212,14 @@ public class Enemy:MonoBehaviour {
 			case 3:
 				enemySound = RandomNoiceTrack(enemyNoices.Lv3_SoundTracks);
 				break;
+			case 4:
+				enemySound = RandomNoiceTrack(enemyNoices.Lv4_SoundTracks);
+				break;
+			case 5:
+				enemySound = RandomNoiceTrack(enemyNoices.Lv5_SoundTracks);
+				break;
 			default:
-				enemySound = RandomNoiceTrack(enemyNoices.Lv0_SoundTracks);
+				enemySound = RandomNoiceTrack(enemyNoices.Lv5_SoundTracks);
 				break;
 		}
 	}
@@ -211,6 +237,12 @@ public class Enemy:MonoBehaviour {
 				break;
 			case 3:
 				EnemyExpReward = enemyExpRewards.lvl3_ExpReward;
+				break;
+			case 4:
+				EnemyExpReward = enemyExpRewards.lvl4_ExpReward;
+				break;
+			case 5:
+				EnemyExpReward = enemyExpRewards.lvl5_ExpReward;
 				break;
 			default:
 				EnemyExpReward = enemyExpRewards.lvl0_ExpReward;

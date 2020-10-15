@@ -887,9 +887,9 @@ MonoBehaviour:
   hideDebugText: {fileID: 712006404}
   attackDebugText: {fileID: 1053466266}
   playerLevel: 1
-  hideKey: 32
+  hideKey: 324
   attackKey: 323
-  callKey: 324
+  callKey: 32
   playerMaxLives: 1
   attackDistance: 5
   expToLevelUp:
@@ -2025,6 +2025,7 @@ MonoBehaviour:
   blackScreenKey: 45
   enemy: {fileID: 807796519}
   player: {fileID: 767637702}
+  gameStarted: 0
 --- !u!1 &2115566484
 GameObject:
   m_ObjectHideFlags: 0

@@ -91,8 +91,10 @@ public class Enemy:MonoBehaviour {
 	}
 
 	private void Update() {
-		MoveCloser();
-		MoveAway();
+		if(Manager.instance.gameStarted) {
+			MoveCloser();
+			MoveAway();
+		}
 	}
 
 	private void Movement() {

@@ -35,7 +35,8 @@ public class Manager : MonoBehaviour {
 	public Enemy enemy;
 	public Player player;
 
-	private bool gameStarted = false;
+	[HideInInspector]
+	public bool gameStarted = false;
 	#endregion
 
 	private void Awake() {

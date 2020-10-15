@@ -81,9 +81,11 @@ public class Player:MonoBehaviour {
 	}
 
 	private void Update() {
-		Attack();
-		Hide();
-		Call();
+		if(Manager.instance.gameStarted) {
+			Attack();
+			Hide();
+			Call();
+		}
 	}
 
 	private void Attack() {
@@ -166,16 +168,16 @@ public class Player:MonoBehaviour {
 		Hidden = true;
 		Enemy enemy = Manager.instance.enemy;
 
-		while (Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
-			yield return new WaitForSeconds(0);
-		}
+		//while (Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
+		//	yield return new WaitForSeconds(0);
+		//}
 
 		movementSource.Stop();
 		hideDebugText.SetActive(Hidden);
 		Manager.instance.PlayClip(audioSource, hideSound);
-		Manager.instance.enemy.LostTarget();
 
 		yield return new WaitForSeconds(1.5f);
+		Manager.instance.enemy.LostTarget();
 		Hidden = false;
 		hideDebugText.SetActive(Hidden);
 	}
@@ -184,13 +186,15 @@ public class Player:MonoBehaviour {
 		Attacking = true;
 		Enemy enemy = Manager.instance.enemy;
 
-		while(Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
-			yield return new WaitForSeconds(0);
-		}
+		//while(Vector3.Distance(transform.position, enemy.transform.position) > attackDistance) {
+		//	yield return new WaitForSeconds(0);
+		//}
 
 		attackDebugText.SetActive(Attacking);
 		int enemyLevel = enemy.EnemyLevel;
 		Manager.instance.PlayClip(audioSource, attackSound[playerLevel - 1]);
+
+		yield return new WaitForSeconds(1.5f);
 
 		if(enemyLevel > playerLevel) {
 			Attacked();
@@ -199,7 +203,6 @@ public class Player:MonoBehaviour {
 			Manager.instance.enemy.GetAttacked();
 		}
 
-		yield return new WaitForSeconds(1.5f);
 		Attacking = false;
 		attackDebugText.SetActive(Attacking);
 	}

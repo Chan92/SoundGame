@@ -82,8 +82,10 @@ public class Player:MonoBehaviour {
 
 	private void Update() {
 		if(Manager.instance.gameStarted) {
-			Attack();
-			Hide();
+			if(!Hidden && !Attacking) {
+				Attack();
+				Hide();
+			}
 			Call();
 		}
 	}
